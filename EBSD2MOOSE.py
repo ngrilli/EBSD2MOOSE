@@ -22,6 +22,7 @@ parser.add_argument('-nx_max','--nx_max',type=int,default=-1)
 parser.add_argument('-ny_min','--ny_min',type=int,default=-1)
 parser.add_argument('-ny_max','--ny_max',type=int,default=-1)
 parser.add_argument('-UMAT','--UMAT',action='store_true')  # on/off flag
+parser.add_argument('-aster','--aster',action='store_true')
 
 args = parser.parse_args()
 
