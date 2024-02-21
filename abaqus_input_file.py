@@ -41,6 +41,14 @@ class AbaqusInputFile:
 						self.left = np.append(self.left, node_index+1)
 					elif (x == self.Nx):
 						self.right = np.append(self.right, node_index+1)
+					if (y == 0):
+						self.bottom = np.append(self.bottom, node_index+1)
+					elif (y == self.Ny):
+						self.top = np.append(self.top, node_index+1)
+					if (z == 0):
+						self.back = np.append(self.back, node_index+1)
+					elif (z == self.Nz):
+						self.front = np.append(self.front, node_index+1)
 		
 	# create data structure with node indices for each element
 	def generate_elements(self):
@@ -82,9 +90,16 @@ class AbaqusInputFile:
 				fid.write("{:d}".format(int(self.elements[elem,node])))
 			fid.write("\n")
 		fid.write("*NSET, NSET=LEFT" + "\n")
-		fid.write("*NSET, NSET=RIGHT")
-		fid.write("*NSET, NSET=BOTTOM")
-		fid.write("*NSET, NSET=TOP")
-		fid.write("*NSET, NSET=BACK")
-		fid.write("*NSET, NSET=FRONT")
+		for node in range(len(self.left)):
+			fid.write("{:d}".format(int(self.left[node])))
+			if (node == len(self.left)-1 or ((node+1)%6 == 0 and node > 0)):
+				fid.write("\n")
+			else:
+				fid.write(", ")
+		fid.write("*NSET, NSET=RIGHT" + "\n")
+		fid.write("*NSET, NSET=BOTTOM" + "\n")
+		fid.write("*NSET, NSET=TOP" + "\n")
+		fid.write("*NSET, NSET=BACK" + "\n")
+		fid.write("*NSET, NSET=FRONT" + "\n")
+		# write an element set for each element
 		fid.close()
