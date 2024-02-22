@@ -97,9 +97,39 @@ class AbaqusInputFile:
 			else:
 				fid.write(", ")
 		fid.write("*NSET, NSET=RIGHT" + "\n")
+		for node in range(len(self.right)):
+			fid.write("{:d}".format(int(self.right[node])))
+			if (node == len(self.right)-1 or ((node+1)%6 == 0 and node > 0)):
+				fid.write("\n")
+			else:
+				fid.write(", ")		
 		fid.write("*NSET, NSET=BOTTOM" + "\n")
+		for node in range(len(self.bottom)):
+			fid.write("{:d}".format(int(self.bottom[node])))
+			if (node == len(self.bottom)-1 or ((node+1)%6 == 0 and node > 0)):
+				fid.write("\n")
+			else:
+				fid.write(", ")			
 		fid.write("*NSET, NSET=TOP" + "\n")
+		for node in range(len(self.top)):
+			fid.write("{:d}".format(int(self.top[node])))
+			if (node == len(self.top)-1 or ((node+1)%6 == 0 and node > 0)):
+				fid.write("\n")
+			else:
+				fid.write(", ")	
 		fid.write("*NSET, NSET=BACK" + "\n")
+		for node in range(len(self.back)):
+			fid.write("{:d}".format(int(self.back[node])))
+			if (node == len(self.back)-1 or ((node+1)%6 == 0 and node > 0)):
+				fid.write("\n")
+			else:
+				fid.write(", ")	
 		fid.write("*NSET, NSET=FRONT" + "\n")
+		for node in range(len(self.front)):
+			fid.write("{:d}".format(int(self.front[node])))
+			if (node == len(self.front)-1 or ((node+1)%6 == 0 and node > 0)):
+				fid.write("\n")
+			else:
+				fid.write(", ")	
 		# write an element set for each element
 		fid.close()
