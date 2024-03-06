@@ -133,3 +133,49 @@ class AbaqusInputFile:
 				fid.write(", ")	
 		# write an element set for each element
 		fid.close()
+		
+	# convert inp file to med file
+	def inp2med(self):
+		import meshio
+		inpmesh = meshio.read(self.file_name)
+		medmesh = meshio.read(self.file_name) # initialize medmesh with fields from inpmesh
+		medmesh.cell_tags = {} # add specific missing med tags dictionaries
+		medmesh.point_tags = {}
+		medmesh.cell_sets.clear() # clean unecessary info in medmesh
+		medmesh.cell_sets_dict.clear()
+		medmesh.point_sets.clear()
+		del medmesh.cells[1:len(medmesh.cells)]
+		list_cell_groups = [] # define cell groups
+		for cellid in range(len(inpmesh.cells[0])):
+			temp_cell_group = []
+			for i, key in enumerate(inpmesh.cell_sets):
+				if cellid in inpmesh.cell_sets[key][0]:
+					temp_cell_group.append(key)       
+			list_cell_groups.append(temp_cell_group)
+		unique_cell_groups = [list(x) for x in set(tuple(x) for x in list_cell_groups) if x]
+		for i, group in enumerate(unique_cell_groups):
+			medmesh.cell_tags[-6-i] = group
+		ctags = [0]*len(inpmesh.cells[0]) # define cell tags
+		for i, item in enumerate(list_cell_groups):
+			for j in medmesh.cell_tags:
+				if item == medmesh.cell_tags[j]:
+					ctags[i] = j
+		medmesh.cell_data['cell_tags'] = [np.array(ctags)]
+		medmesh.cell_data_dict['cell_tags'] = {list(inpmesh.cells_dict.keys())[0]:np.array(ctags)}
+		list_point_groups = [] # define node groups
+		for nodeid in range(len(inpmesh.points)):
+			temp_point_group = []
+			for i, key in enumerate(inpmesh.point_sets):
+				if nodeid in inpmesh.point_sets[key]:
+					temp_point_group.append(key)       
+			list_point_groups.append(temp_point_group)
+		unique_point_groups = [list(x) for x in set(tuple(x) for x in list_point_groups) if x]
+		for i, group in enumerate(unique_point_groups): # define nodeset tags
+			medmesh.point_tags[2+i] = group
+		ptags = [0]*len(inpmesh.points)
+		for i, item in enumerate(list_point_groups):
+			for j in medmesh.point_tags:
+				if item == medmesh.point_tags[j]:
+					ptags[i] = j
+		medmesh.point_data['point_tags'] = np.array(ptags)
+		medmesh.write(self.file_name.split('.')[0] + '.med') # write mesh file
