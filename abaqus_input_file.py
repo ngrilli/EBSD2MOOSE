@@ -14,6 +14,7 @@ class AbaqusInputFile:
 		self.thickness = thickness
 		self.nodes = np.zeros(shape=(0))
 		self.elements = np.zeros(shape=(0))
+		self.Nelements = 0
 		self.Nx = max(EBSD_data.Nx_odd,EBSD_data.Nx_even)
 		self.Ny = EBSD_data.Ny
 		self.Nz = self.thickness
@@ -52,7 +53,8 @@ class AbaqusInputFile:
 		
 	# create data structure with node indices for each element
 	def generate_elements(self):
-		self.elements = np.zeros(shape=(self.Nx*self.Ny*self.Nz,8))
+		self.Nelements = self.Nx*self.Ny*self.Nz
+		self.elements = np.zeros(shape=(self.Nelements,8))
 		for x in range(self.Nx):
 			for y in range(self.Ny):
 				for z in range(self.Nz):
@@ -132,6 +134,10 @@ class AbaqusInputFile:
 			else:
 				fid.write(", ")	
 		# write an element set for each element
+		for elem in range(self.Nelements):
+			fid.write("*ELSET, ELSET=GRAIN" + str(elem+1) + "\n")
+			fid.write("{:d}".format(int(elem+1)))
+			fid.write("\n")
 		fid.close()
 		
 	# convert inp file to med file
