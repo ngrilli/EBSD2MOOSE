@@ -103,29 +103,39 @@ class EBSD:
 		print('ny = ' + str(int((ny_max-ny_min-2)/frequency)+1))
 		
 	# Generate an Euler angles file in UMAT format
-	def generate_UMAT_Euler_angles_file(self,filename='materials.dat',frequency=1,thickness=1):
+	def generate_UMAT_Euler_angles_file(self,filename='materials.dat',frequency=1,thickness=1,nx_min=-1,nx_max=-1,ny_min=-1,ny_max=-1):
 		euler_angles_file = open(filename,"w")
 		max_Nx = max(self.Nx_odd,self.Nx_even)
+		if (nx_max < 0): # negative means no upper limit
+			nx_max = max_Nx
+		if (ny_max < 0):
+			ny_max = self.Ny
 		elem = 0 # incremental element counter
 		for z in range(int(thickness)):
 			for y in range(self.Ny):
 				for x in range(max_Nx):
 					# check frequency
 					if (x%frequency == 0 and y%frequency == 0):
-						elem += 1
-						euler_angles_file.write('{:0.0f}'.format(elem))
-						euler_angles_file.write(' ')
-						euler_angles_file.write('{:0.2f}'.format(self.phi1_map[x,y]))
-						euler_angles_file.write(' ')
-						euler_angles_file.write('{:0.2f}'.format(self.Phi_map[x,y]))
-						euler_angles_file.write(' ')
-						euler_angles_file.write('{:0.2f}'.format(self.phi2_map[x,y]))
-						euler_angles_file.write(' ')
-						euler_angles_file.write('{:0.0f}'.format(1))
-						euler_angles_file.write(' ')
-						euler_angles_file.write('{:0.0f}'.format(self.crystal_struc))
-						euler_angles_file.write('\n')
+						# check boundaries
+						if (x > nx_min and x < nx_max and y > ny_min and y < ny_max):
+							elem += 1
+							euler_angles_file.write('{:0.0f}'.format(elem))
+							euler_angles_file.write(' ')
+							euler_angles_file.write('{:0.2f}'.format(self.phi1_map[x,y]))
+							euler_angles_file.write(' ')
+							euler_angles_file.write('{:0.2f}'.format(self.Phi_map[x,y]))
+							euler_angles_file.write(' ')
+							euler_angles_file.write('{:0.2f}'.format(self.phi2_map[x,y]))
+							euler_angles_file.write(' ')
+							euler_angles_file.write('{:0.0f}'.format(1))
+							euler_angles_file.write(' ')
+							euler_angles_file.write('{:0.0f}'.format(self.crystal_struc))
+							euler_angles_file.write('\n')
 		euler_angles_file.close()
+		# print information about the size of the map
+		print('Size of the Euler angles file')
+		print('nx = ' + str(int((nx_max-nx_min-2)/frequency)+1))
+		print('ny = ' + str(int((ny_max-ny_min-2)/frequency)+1))
 
 	# plot the EBSD map
 	def plot_EBSD_map(self,frequency=1,nx_min=-1,nx_max=-1,ny_min=-1,ny_max=-1):
