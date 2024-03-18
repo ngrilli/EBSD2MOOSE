@@ -8,15 +8,15 @@ import numpy as np
 
 class AbaqusInputFile:
 	
-	def __init__(self, file_name, EBSD_data, thickness):
+	def __init__(self, file_name,EBSD_data,thickness=1):
 		self.file_name = file_name
 		self.EBSD_data = EBSD_data # an EBSD object
 		self.thickness = thickness
 		self.nodes = np.zeros(shape=(0))
 		self.elements = np.zeros(shape=(0))
 		self.Nelements = 0
-		self.Nx = max(EBSD_data.Nx_odd,EBSD_data.Nx_even)
-		self.Ny = EBSD_data.Ny
+		self.Nx = 0 #max(EBSD_data.Nx_odd,EBSD_data.Nx_even)
+		self.Ny = 0 #EBSD_data.Ny
 		self.Nz = self.thickness
 		# list of nodes for the boundaries
 		self.left = np.zeros(shape=(0))
@@ -26,10 +26,18 @@ class AbaqusInputFile:
 		self.back = np.zeros(shape=(0))
 		self.front = np.zeros(shape=(0))
 		
+	# calculate dimensions of this mesh
+	def calculate_dimensions(self,frequency=1,nx_min=-1,nx_max=-1,ny_min=-1,ny_max=-1):
+		if (nx_max < 0): # negative means no upper limit
+			nx_max = max(self.EBSD_data.Nx_odd,self.EBSD_data.Nx_even)
+		if (ny_max < 0):
+			ny_max = self.EBSD_data.Ny
+		self.Nx = int((nx_max-nx_min-2)/frequency)+1
+		self.Ny = int((ny_max-ny_min-2)/frequency)+1
+		
 	# create data structure with node coordinates
-	def generate_nodes(self):
-		# use unitary element size for the moment
-		# frequency option missing
+	def generate_nodes(self,frequency=1):
+		# use unitary pixel size for the moment
 		self.nodes = np.zeros(shape=((self.Nx+1)*(self.Ny+1)*(self.Nz+1),3))
 		for x in range(self.Nx+1):
 			for y in range(self.Ny+1):
@@ -52,7 +60,7 @@ class AbaqusInputFile:
 						self.front = np.append(self.front, node_index+1)
 		
 	# create data structure with node indices for each element
-	def generate_elements(self):
+	def generate_elements(self,frequency=1):
 		self.Nelements = self.Nx*self.Ny*self.Nz
 		self.elements = np.zeros(shape=(self.Nelements,8))
 		for x in range(self.Nx):
@@ -69,9 +77,10 @@ class AbaqusInputFile:
 					for node in range(8):
 						self.elements[element_index,node] = node_indices[node]
 		
-	def write_input_file(self):
-		self.generate_nodes()
-		self.generate_elements()
+	def write_input_file(self,frequency=1,nx_min=-1,nx_max=-1,ny_min=-1,ny_max=-1):
+		self.calculate_dimensions(frequency,nx_min,nx_max,ny_min,ny_max)
+		self.generate_nodes(frequency)
+		self.generate_elements(frequency)
 		fid = open(self.file_name,'w')
 		fid.write("*Part, NAME=TEST" + "\n")
 		fid.write("*NODE" + "\n")

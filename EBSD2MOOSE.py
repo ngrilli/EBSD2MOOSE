@@ -35,9 +35,9 @@ data.generate_2D_Euler_angles_map()
 data.plot_EBSD_map(args.frequency,args.nx_min,args.nx_max,args.ny_min,args.ny_max)
 
 if (args.UMAT):
-	data.generate_UMAT_Euler_angles_file(args.filename.rsplit('.', maxsplit=1)[0]+'.txt',args.frequency,args.thickness)
+	data.generate_UMAT_Euler_angles_file(args.filename.rsplit('.', maxsplit=1)[0]+'.txt',args.frequency,args.thickness,args.nx_min,args.nx_max,args.ny_min,args.ny_max)
 	abaqus_file = AbaqusInputFile(args.filename.rsplit('.', maxsplit=1)[0]+'.inp',data,args.thickness)
-	abaqus_file.write_input_file()
+	abaqus_file.write_input_file(args.frequency,args.nx_min,args.nx_max,args.ny_min,args.ny_max)
 	if (args.aster):
 		abaqus_file.inp2med()
 else:
