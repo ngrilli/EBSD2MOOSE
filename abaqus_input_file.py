@@ -8,7 +8,7 @@ import numpy as np
 
 class AbaqusInputFile:
 	
-	def __init__(self, file_name,EBSD_data,thickness=1):
+	def __init__(self,file_name,EBSD_data,thickness=1):
 		self.file_name = file_name
 		self.EBSD_data = EBSD_data # an EBSD object
 		self.thickness = thickness
