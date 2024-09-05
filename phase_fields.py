@@ -18,12 +18,24 @@ class PhaseFields:
 		self.longitude_sections = longitude_sections
 		self.latitude_sections = latitude_sections
 	
-	# calculate section of the sphere based on Euler angles
+	# calculate section of the sphere in which the c crystal axis 
+	# is rotated based on Euler angles
 	def sphere_section(self,phi1,Phi,phi2):
+		R = rotation_matrix(phi1,Phi,phi2)
+		z = np.dot(R, np.array([0,0,1]))
+		# calculate latitude and longitude
+		if (abs(z[0]) > 1.0e-6):
+			longitude = np.arctan(z[1]/z[0])
+		elif (z[1] > 1.0e-6):
+			longitude = np.pi / 2.0
+		elif (z[1] < -1.0e-6):
+			longitude = 3.0 * np.pi / 2.0
+		else:
+			longitude = 0.0
 		return 1.0
 		
 	# calculate ZXZ rotation matrix, angles are in radians
-	def rotation_matrix():
+	def rotation_matrix(phi1,Phi,phi2):
 		R = np.zeros(shape=(3,3))
 		R[0,0] = np.cos(phi1) * np.cos(phi2) - np.sin(phi1) * np.sin(phi2) * np.cos(Phi)
 		R[0,1] = - np.cos(phi1) * np.sin(phi2) - np.sin(phi1) * np.cos(phi2) * np.cos(Phi)
