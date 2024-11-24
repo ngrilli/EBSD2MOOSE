@@ -10,8 +10,7 @@ import matplotlib.pyplot as plt
 
 class EBSD:
 	
-	def __init__(self, crystal_struc, file_name):
-		self.crystal_struc = crystal_struc # should be read from .ang file, TO DO: multiphase
+	def __init__(self, file_name):
 		self.file_name = file_name
 		self.file_type = self.file_name[-3:]
 		self.Nx_odd = 0 # .ang file can have odd columns with a different size compared with even columns
@@ -21,9 +20,11 @@ class EBSD:
 		self.phi1 = np.zeros(shape=(0)) # Euler angles in degrees
 		self.Phi = np.zeros(shape=(0))
 		self.phi2 = np.zeros(shape=(0))
+		self.crystal_structure = np.zeros(shape=(0)) # phase
 		self.phi1_map = np.zeros(shape=(0,0)) # 2D Euler angles maps
 		self.Phi_map = np.zeros(shape=(0,0))
 		self.phi2_map = np.zeros(shape=(0,0))
+		self.crystal_structure_map = np.zeros(shape=(0,0)) # 2D phase map
 
 	# Parse all information about the EBSD map
 	def parse_ebsd_file(self):
@@ -38,6 +39,7 @@ class EBSD:
 				if line[:9] == '# NROWS: ':
 					self.Ny = int(line.split('# NROWS: ',1)[1])
 				# start reading Euler angles
+				# TO DO: read phase in .ang files
 				if self.euler_start_line > 0:
 					self.phi1[i-self.euler_start_line] = (180/np.pi) * float(line.split()[0])
 					self.Phi[i-self.euler_start_line] = (180/np.pi) * float(line.split()[1])
@@ -65,12 +67,14 @@ class EBSD:
 					self.phi1[i-self.euler_start_line] = float(line.split()[5])
 					self.Phi[i-self.euler_start_line] = float(line.split()[6])
 					self.phi2[i-self.euler_start_line] = float(line.split()[7])
+					self.crystal_structure[i-self.euler_start_line] = int(line.split()[0])
 				elif line[:6] == 'Phase	':
 					self.euler_start_line = i + 1
 					# size the data structures for storing Euler angles
 					self.phi1 = np.zeros(shape=(self.Nx_odd*self.Ny))
 					self.Phi = np.zeros(shape=(self.Nx_odd*self.Ny))
 					self.phi2 = np.zeros(shape=(self.Nx_odd*self.Ny))
+					self.crystal_structure = np.zeros(shape=(self.Nx_odd*self.Ny))
 		fid.close()
 		
 	# Generate an Euler angles file in MOOSE format
@@ -129,7 +133,8 @@ class EBSD:
 							euler_angles_file.write(' ')
 							euler_angles_file.write('{:0.0f}'.format(1))
 							euler_angles_file.write(' ')
-							euler_angles_file.write('{:0.0f}'.format(self.crystal_struc))
+							# TO DO: multiphase in UMAT Euler angles file
+							euler_angles_file.write('{:0.0f}'.format(1))
 							euler_angles_file.write('\n')
 		euler_angles_file.close()
 		# print information about the size of the map
@@ -186,8 +191,10 @@ class EBSD:
 		self.phi1_map = np.zeros(shape=(max_Nx,self.Ny))
 		self.Phi_map = np.zeros(shape=(max_Nx,self.Ny))
 		self.phi2_map = np.zeros(shape=(max_Nx,self.Ny))
+		self.crystal_structure_map = np.zeros(shape=(max_Nx,self.Ny))
 		for elem in range(len(self.phi1)):
 			[x,y] = self.cell2coords(elem)
 			self.phi1_map[x,y] = self.phi1[elem]
 			self.Phi_map[x,y] = self.Phi[elem]
 			self.phi2_map[x,y] = self.phi2[elem]
+			self.crystal_structure_map[x,y] = self.crystal_structure[elem]

@@ -6,10 +6,11 @@
 # compatible with MOOSE framework or UMAT
 
 import numpy as np
-from ebsd import EBSD
-from abaqus_input_file import AbaqusInputFile
 import sys
 import argparse
+from ebsd import EBSD
+from abaqus_input_file import AbaqusInputFile
+from multiphase import Multiphase
 
 parser = argparse.ArgumentParser(prog='EBSD2MOOSE', \
                                  description='Convert EBSD ctf and ang files to MOOSE or UMAT Euler angles files', \
@@ -24,10 +25,11 @@ parser.add_argument('-ny_min','--ny_min',type=int,default=-1)
 parser.add_argument('-ny_max','--ny_max',type=int,default=-1)
 parser.add_argument('-UMAT','--UMAT',action='store_true')  # on/off flag
 parser.add_argument('-aster','--aster',action='store_true')
+parser.add_argument('-multiphase','--multiphase',action='store_true')
 
 args = parser.parse_args()
 
-data = EBSD(1,args.filename)
+data = EBSD(args.filename)
 
 data.parse_ebsd_file()
 data.generate_2D_Euler_angles_map()
@@ -42,3 +44,6 @@ if (args.UMAT):
 		abaqus_file.inp2med()
 else:
 	data.generate_MOOSE_Euler_angles_file(args.filename.rsplit('.', maxsplit=1)[0]+'.txt',args.frequency,args.thickness,args.nx_min,args.nx_max,args.ny_min,args.ny_max)
+	if (args.multiphase):
+		phase = Multiphase(args.filename,data)
+		phase.generate_MOOSE_phase_file(args.filename.rsplit('.', maxsplit=1)[0]+'_phase.txt',args.frequency,args.thickness,args.nx_min,args.nx_max,args.ny_min,args.ny_max)
