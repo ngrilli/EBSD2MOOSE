@@ -1,4 +1,5 @@
 # Nicolò Grilli
+# Zhuohao Song
 # Università di Bristol
 # 20 Marzo 2025
 
@@ -14,6 +15,11 @@ class StereographicTriangle:
 		# data structures to store coordinates of points in the stereographic projection
 		self.x_stereographic = np.zeros(shape=(len(self.EBSD_data.phi1)))
 		self.y_stereographic = np.zeros(shape=(len(self.EBSD_data.phi1)))
+		# hard coded arbitrary orthonormal directions for stereographic projection
+		# this will constitute a reference system for the stereographic triangle
+		self.out_of_page_dir = np.array([1.0,0.0,0.0]) # direction of the bottom left corner of the stereographic triangle
+		self.towards_right_dir = np.array([0.0,1.0,0.0]) # direction of the bottom right corner of the stereographic triangle
+		self.towards_up_dir = np.cross(self.out_of_page_dir,self.towards_right_dir)
 
 	# generate rotation matrix (active rotation)
 	# from Euler angles angles in radians
@@ -32,33 +38,39 @@ class StereographicTriangle:
 
 	# apply FCC symmetries to reduce a 3D vector to the standard triangle
 	def apply_symmetry(self,v):
-		# make all components positive by applying reflections x, y, z
+		# make all components positive by applying reflections
 		w = np.zeros(shape=(3))
 		for i in range(3):
-			if (v[i] < 0):
-				w[i] = -v[i]
-			else:
-				w[i] = v[i]
-		# if y component bigger than x component, apply reflection on (-110)
-		if (w[1] > w[0]):
-			temp = w[0]
-			w[0] = w[1]
-			w[1] = temp
-		# if y component is bigger than z component, apply reflection on (01-1)
-		if (w[1] > w[2]):
-			temp = w[2]
-			w[2] = w[1]
-			w[1] = temp
-		# if x component is bigger than z component, apply reflection on (10-1)
-		if (w[0] > w[2]):
-			temp = w[2]
-			w[2] = w[0]
-			w[0] = temp
+			w[i] = v[i]
+		temp_dot = np.dot(w,self.towards_right_dir)
+		if (temp_dot < 0):
+			w = w - 2.0 * temp_dot * self.towards_right_dir
+		temp_dot = np.dot(w,self.towards_up_dir)
+		if (temp_dot < 0):
+			w = w - 2.0 * temp_dot * self.towards_up_dir
+		temp_dot = np.dot(w,self.out_of_page_dir)
+		if (temp_dot < 0):
+			w = w - 2.0 * temp_dot * self.out_of_page_dir
+		# if towards_up component bigger than towards_right component, apply reflection with respect to n = (-110)
+		if (np.dot(w,self.towards_up_dir) > np.dot(w,self.towards_right_dir)):
+			n = self.towards_up_dir - self.towards_right_dir
+			n = n / np.linalg.norm(n)
+			w = w - 2.0 * np.dot(w,n) * n
+		# if towards_up component bigger than out_of_page component, apply reflection with respect to n = (01-1)
+		if (np.dot(w,self.towards_up_dir) > np.dot(w,self.out_of_page_dir)):
+			n = self.towards_up_dir - self.out_of_page_dir
+			n = n / np.linalg.norm(n)
+			w = w - 2.0 * np.dot(w,n) * n
+		# if towards_right component bigger than out_of_page component, apply reflection with respect to n = (10-1)
+		if (np.dot(w,self.towards_right_dir) > np.dot(w,self.out_of_page_dir)):
+			n = self.towards_right_dir - self.out_of_page_dir
+			n = n / np.linalg.norm(n)
+			w = w - 2.0 * np.dot(w,n) * n
 		return w
 		
-	# calculate stereographic projection of a point (x,y,z) on the unit sphere
-	def stereographic_projection(self,x,y,z):
-		outstereo = np.zeros(shape=(3))
+	# calculate stereographic projection of a point on the unit sphere
+	def stereographic_projection(self,v):
+		outstereo = np.zeros(shape=(2))
 		outstereo[0] = x / (1.0 + z)
 		outstereo[1] = y / (1.0 + z) 
 		return outstereo
@@ -71,7 +83,7 @@ class StereographicTriangle:
 			Phi = self.EBSD_data.Phi[i]
 			phi2 = self.EBSD_data.phi2[i]
 			R = self.rotation_matrix((np.pi/180.0)*phi1,(np.pi/180.0)*Phi,(np.pi/180.0)*phi2)
-			v = R.dot(np.array([0.0,0.0,1.0])) # stereographic projection with respect to [001] axis of cubic crystal
+			v = R.dot(np.array([0.0,0.0,1.0])) # stereographic projection with respect to <001> cubic crystal directions
 			w = self.apply_symmetry(v)
 			outstereo = self.stereographic_projection(w[0],w[1],w[2])
 			self.x_stereographic[i] = outstereo[0]
@@ -118,3 +130,11 @@ class StereographicTriangle:
 		ax_stereo.set_ylim(-0.03,0.4)
 		fig_stereo.tight_layout()
 		fig_stereo.savefig('stereographic_projection.png',dpi=200)
+
+	# calculate latitude
+	def calculate_latitude(self):
+		# TO DO
+
+	# calculate longitude
+	def calculate_longitude(self):
+		# TO DO
