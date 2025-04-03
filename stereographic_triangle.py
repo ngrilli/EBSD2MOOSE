@@ -17,8 +17,8 @@ class StereographicTriangle:
 		self.y_stereographic = np.zeros(shape=(len(self.EBSD_data.phi1)))
 		# hard coded arbitrary orthonormal directions for stereographic projection
 		# this will constitute a reference system for the stereographic triangle
-		self.out_of_page_dir = np.array([1.0,0.0,0.0]) # direction of the bottom left corner of the stereographic triangle
-		self.towards_right_dir = np.array([0.0,1.0,0.0]) # direction of the bottom right corner of the stereographic triangle
+		self.out_of_page_dir = np.array([0.0,0.0,1.0]) # crystallographic direction of the bottom left corner of the stereographic triangle
+		self.towards_right_dir = np.array([1.0,0.0,0.0]) # crystallographic direction of the bottom right corner of the stereographic triangle
 		self.towards_up_dir = np.cross(self.out_of_page_dir,self.towards_right_dir)
 
 	# generate rotation matrix (active rotation)
@@ -37,6 +37,7 @@ class StereographicTriangle:
 		return matrix
 
 	# apply FCC symmetries to reduce a 3D vector to the standard triangle
+	# in the crystal reference frame
 	def apply_symmetry(self,v):
 		# make all components positive by applying reflections
 		w = np.zeros(shape=(3))
@@ -69,7 +70,7 @@ class StereographicTriangle:
 		return w
 		
 	# calculate stereographic projection of a point on the unit sphere
-	def stereographic_projection(self,v):
+	def stereographic_projection(self,x,y,z):
 		outstereo = np.zeros(shape=(2))
 		outstereo[0] = x / (1.0 + z)
 		outstereo[1] = y / (1.0 + z) 
@@ -83,9 +84,13 @@ class StereographicTriangle:
 			Phi = self.EBSD_data.Phi[i]
 			phi2 = self.EBSD_data.phi2[i]
 			R = self.rotation_matrix((np.pi/180.0)*phi1,(np.pi/180.0)*Phi,(np.pi/180.0)*phi2)
-			v = R.dot(np.array([0.0,0.0,1.0])) # stereographic projection with respect to <001> cubic crystal directions
+			transposeR = R.transpose() # transforms coordinates from sample reference frame to crystal reference frame
+			v = transposeR.dot(np.array([1.0,0.0,0.0])) # stereographic projection with respect to <100> cubic crystal directions
 			w = self.apply_symmetry(v)
-			outstereo = self.stereographic_projection(w[0],w[1],w[2])
+			w0 = np.dot(w,self.towards_right_dir)
+			w1 = np.dot(w,self.towards_up_dir)
+			w2 = np.dot(w,self.out_of_page_dir)
+			outstereo = self.stereographic_projection(w0,w1,w2)
 			self.x_stereographic[i] = outstereo[0]
 			self.y_stereographic[i] = outstereo[1]
 			
@@ -131,10 +136,10 @@ class StereographicTriangle:
 		fig_stereo.tight_layout()
 		fig_stereo.savefig('stereographic_projection.png',dpi=200)
 
-	# calculate latitude
-	def calculate_latitude(self):
-		# TO DO
+	# calculate latitude: the angle with respect to out_of_page_dir 
+	def calculate_latitude(self,v):
+		return np.arccos(np.dot(v,self.out_of_page_dir))
 
-	# calculate longitude
-	def calculate_longitude(self):
-		# TO DO
+	# calculate longitude: the angle with respect to towards_right direction
+	def calculate_longitude(self,v):
+		return np.arccos(np.dot(v,self.towards_right_dir))
