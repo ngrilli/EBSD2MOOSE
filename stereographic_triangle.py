@@ -17,8 +17,8 @@ class StereographicTriangle:
 		self.y_stereographic = np.zeros(shape=(len(self.EBSD_data.phi1)))
 		# hard coded arbitrary orthonormal directions for stereographic projection
 		# this will constitute a reference system for the stereographic triangle
-		self.out_of_page_dir = np.array([0.0,0.0,1.0]) # crystallographic direction of the bottom left corner of the stereographic triangle
-		self.towards_right_dir = np.array([1.0,0.0,0.0]) # crystallographic direction of the bottom right corner of the stereographic triangle
+		self.out_of_page_dir = np.array([0.0,0.0,1.0]) # crystallographic direction on the left
+		self.towards_right_dir = np.array([1.0,0.0,0.0]) # crystallographic direction on the right
 		self.towards_up_dir = np.cross(self.out_of_page_dir,self.towards_right_dir)
 
 	# generate rotation matrix (active rotation)
@@ -85,7 +85,7 @@ class StereographicTriangle:
 			phi2 = self.EBSD_data.phi2[i]
 			R = self.rotation_matrix((np.pi/180.0)*phi1,(np.pi/180.0)*Phi,(np.pi/180.0)*phi2)
 			transposeR = R.transpose() # transforms coordinates from sample reference frame to crystal reference frame
-			v = transposeR.dot(np.array([1.0,0.0,0.0])) # stereographic projection with respect to <100> cubic crystal directions
+			v = transposeR.dot(np.array([1.0,0.0,0.0])) # stereographic projection with respect to X axis sample direction
 			w = self.apply_symmetry(v)
 			w0 = np.dot(w,self.towards_right_dir)
 			w1 = np.dot(w,self.towards_up_dir)
@@ -135,6 +135,21 @@ class StereographicTriangle:
 		ax_stereo.set_ylim(-0.03,0.4)
 		fig_stereo.tight_layout()
 		fig_stereo.savefig('stereographic_projection.png',dpi=200)
+
+	# divide the stereographic triangle into different regions and classify directions based on their belonging
+	def classify_vector(self):
+		Nregions == 3
+		v001 = np.array([0.0,0.0,1.0])
+		v111 = np.array([1.0,1.0,1.0]) / np.sqrt(3.0)
+		v101 = np.array([1.0,0.0,1.0]) / np.sqrt(2.0)
+		v_from_001_to_101 = np.zeros(shape=(Nregions,3)) # vectors partitioning the stereographic triangle edges
+		v_from_001_to_111 = np.zeros(shape=(Nregions,3))
+		v_from_101_to_111 = np.zeros(shape=(Nregions,3))
+		for i in range(Nregions):
+			v_from_001_to_101[i,:] = self.slerp(v001, v101, (i+1.0)/(Nregions+1.0))
+			v_from_001_to_111[i,:] = self.slerp(v001, v111, (i+1.0)/(Nregions+1.0))
+			v_from_101_to_111[i,:] = self.slerp(v101, v111, (i+1.0)/(Nregions+1.0))
+		return 0
 
 	# calculate latitude: the angle with respect to out_of_page_dir 
 	def calculate_latitude(self,v):
