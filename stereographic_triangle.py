@@ -149,6 +149,13 @@ class StereographicTriangle:
 			v_from_001_to_101[i,:] = self.slerp(v001, v101, (i+1.0)/(Nregions+1.0))
 			v_from_001_to_111[i,:] = self.slerp(v001, v111, (i+1.0)/(Nregions+1.0))
 			v_from_101_to_111[i,:] = self.slerp(v101, v111, (i+1.0)/(Nregions+1.0))
+		# vectors partitioning the stereographic triangle areas
+		n_horizontal_1 = np.cross(np.squeeze(v_from_001_to_111[0,:]),np.squeeze(v_from_001_to_101[0,:]))
+		n_horizontal_2 = np.cross(np.squeeze(v_from_001_to_111[1,:]),np.squeeze(v_from_001_to_101[1,:]))
+		n_horizontal_3 = np.cross(np.squeeze(v_from_001_to_111[2,:]),np.squeeze(v_from_001_to_101[2,:]))
+		n_vertical_1 = np.cross(np.squeeze(v_from_001_to_111[0,:]),np.squeeze(v_from_101_to_111[0,:]))
+		n_vertical_2 = np.cross(np.squeeze(v_from_001_to_111[1,:]),np.squeeze(v_from_101_to_111[1,:]))
+		n_vertical_3 = np.cross(np.squeeze(v_from_001_to_111[2,:]),np.squeeze(v_from_101_to_111[2,:]))
 		return 0
 
 	# calculate latitude: the angle with respect to out_of_page_dir 
