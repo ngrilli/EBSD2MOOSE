@@ -12,6 +12,7 @@ from ebsd import EBSD
 from abaqus_input_file import AbaqusInputFile
 from multiphase import Multiphase
 from stereographic_triangle import StereographicTriangle
+from odf import ODF
 
 parser = argparse.ArgumentParser(prog='EBSD2MOOSE', \
                                  description='Convert EBSD ctf and ang files to MOOSE or UMAT Euler angles files', \
