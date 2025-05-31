@@ -6,14 +6,17 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.special import ive  # Modified Bessel function
+import random
 
 class ODF:
 	
 	def __init__(self,EBSD_data,N_sampling):
 		self.EBSD_data = EBSD_data # an EBSD object
 		self.N_sampling = N_sampling # number of query points for random sampling
-		
+		self.kappa = 10.0 # concentration parameter of the probability function
+		self.N_random_points = 10000 # number of random points on the unit sphere to generate the probability function
+		# self.EBSD_points = np.zeros(shape=(len(self.EBSD_data.phi1),3)) # EBSD points on unit sphere
+		# a data structure with probabilities? 
 		# random choice according to probability
 		# np.random.choice(5, 3, p=[0.1, 0, 0.3, 0.6, 0])
 
@@ -52,3 +55,14 @@ class ODF:
 			v = R.dot(np.array([1.0,0.0,0.0])) # [100] in the sample reference frame
 			probability += self.von_mises_fisher_kernel(query_point,v,kappa)
 		return (probability / N)
+		
+	# generate random points on the unit sphere and calculate probability function based on EBSD
+	def generate_random_points(self):
+		for i in range(self.N_random_points):
+			phi1 = 2.0 * np.pi * random.random()
+			Phi = np.arccos(2.0 * random.random() - 1.0)
+			phi2 = 2.0 * np.pi * random.random()
+			R = self.rotation_matrix(phi1,Phi,phi2)
+			v = R.dot(np.array([1.0,0.0,0.0])) # [100] in the sample reference frame
+			probability = calculate_probability(v,self.kappa)
+		return 0.0 # return a vector with all probabilities?
