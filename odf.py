@@ -13,7 +13,7 @@ class ODF:
 	def __init__(self,EBSD_data,N_sampling):
 		self.EBSD_data = EBSD_data # an EBSD object
 		self.N_sampling = N_sampling # number of query points for random sampling
-		self.kappa = 10.0 # concentration parameter of the probability function
+		self.kappa = 200 # concentration parameter of the probability function
 		self.N_random_points = 10000 # number of random points on the unit sphere to generate the probability function
 		self.random_Euler_angles = np.zeros(shape=(self.N_random_points,3)) # randomly generated Euler angles
 
@@ -72,13 +72,26 @@ class ODF:
 	# generate sample made of N_sampling points based on probability function
 	def generate_sample(self):
 		probability_array = self.generate_random_points()
-		Euler_angles_indices = np.random.choice(self.N_random_points, self.N_sampling, probability_array)
+		Euler_angles_indices = np.random.choice(self.N_random_points, self.N_sampling, p=probability_array)
 		euler_angles_file = open("SampledEulerAngles.txt","w")
 		for i in range(self.N_sampling):
-			euler_angles_file.write('{:0.2f}'.format(self.random_Euler_angles[Euler_angles_indices[i],0]))
+			euler_angles_file.write('{:0.2f}'.format((180.0/np.pi)*self.random_Euler_angles[Euler_angles_indices[i],0]))
 			euler_angles_file.write(' ')
-			euler_angles_file.write('{:0.2f}'.format(self.random_Euler_angles[Euler_angles_indices[i],1]))
+			euler_angles_file.write('{:0.2f}'.format((180.0/np.pi)*self.random_Euler_angles[Euler_angles_indices[i],1]))
 			euler_angles_file.write(' ')
-			euler_angles_file.write('{:0.2f}'.format(self.random_Euler_angles[Euler_angles_indices[i],2]))
+			euler_angles_file.write('{:0.2f}'.format((180.0/np.pi)*self.random_Euler_angles[Euler_angles_indices[i],2]))
 			euler_angles_file.write('\n')
 		euler_angles_file.close()
+		#self.debug(Euler_angles_indices)
+		return 0
+		
+	# a debug function that prints the selected directions on unit sphere
+	def debug(self,Euler_angles_indices):
+		for i in range(self.N_sampling):
+			phi1 = self.random_Euler_angles[Euler_angles_indices[i],0]
+			Phi = self.random_Euler_angles[Euler_angles_indices[i],1]
+			phi2 = self.random_Euler_angles[Euler_angles_indices[i],2]
+			R = self.rotation_matrix(phi1,Phi,phi2)
+			v = R.dot(np.array([1.0,0.0,0.0]))
+			print(v)
+		return 0

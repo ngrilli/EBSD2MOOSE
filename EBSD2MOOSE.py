@@ -25,10 +25,12 @@ parser.add_argument('-nx_min','--nx_min',type=int,default=-1)
 parser.add_argument('-nx_max','--nx_max',type=int,default=-1)
 parser.add_argument('-ny_min','--ny_min',type=int,default=-1)
 parser.add_argument('-ny_max','--ny_max',type=int,default=-1)
+parser.add_argument('-N_grain_sample','--N_grain_sample',type=int,default=1)
 parser.add_argument('-UMAT','--UMAT',action='store_true')  # on/off flag
 parser.add_argument('-aster','--aster',action='store_true')
 parser.add_argument('-multiphase','--multiphase',action='store_true')
 parser.add_argument('-stereographic_projection','--stereographic_projection',action='store_true')
+parser.add_argument('-odf','--odf',action='store_true')
 
 args = parser.parse_args()
 
@@ -54,3 +56,6 @@ else:
 		stereo = StereographicTriangle(data)
 		stereo.generate_stereographic_projection()
 		stereo.plot_stereographic_projection()
+	if (args.odf):
+		odf = ODF(data,args.N_grain_sample)
+		odf.generate_sample()
