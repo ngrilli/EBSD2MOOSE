@@ -39,11 +39,11 @@ class EBSD:
 				if line[:9] == '# NROWS: ':
 					self.Ny = int(line.split('# NROWS: ',1)[1])
 				# start reading Euler angles
-				# TO DO: read phase in .ang files
 				if self.euler_start_line > 0:
 					self.phi1[i-self.euler_start_line] = (180/np.pi) * float(line.split()[0])
 					self.Phi[i-self.euler_start_line] = (180/np.pi) * float(line.split()[1])
 					self.phi2[i-self.euler_start_line] = (180/np.pi) * float(line.split()[2])
+					self.crystal_structure[i-self.euler_start_line] = int(line.split()[7])
 				elif line[:2] == '  ': # start of Euler angles
 					self.euler_start_line = i
 					# size the data structures for storing Euler angles
@@ -54,6 +54,7 @@ class EBSD:
 					self.phi1 = np.zeros(shape=(size_of_EBSD_map))
 					self.Phi = np.zeros(shape=(size_of_EBSD_map))
 					self.phi2 = np.zeros(shape=(size_of_EBSD_map))
+					self.crystal_structure = np.zeros(shape=(size_of_EBSD_map))
 		# ctf file type: assuming odd columns size = even columns size
 		if self.file_type == 'ctf':
 			for i, line in enumerate(fid):
