@@ -55,6 +55,11 @@ class EBSD:
 					self.Phi = np.zeros(shape=(size_of_EBSD_map))
 					self.phi2 = np.zeros(shape=(size_of_EBSD_map))
 					self.crystal_structure = np.zeros(shape=(size_of_EBSD_map))
+					# assign data in current line
+					self.phi1[i-self.euler_start_line] = (180/np.pi) * float(line.split()[0])
+					self.Phi[i-self.euler_start_line] = (180/np.pi) * float(line.split()[1])
+					self.phi2[i-self.euler_start_line] = (180/np.pi) * float(line.split()[2])
+					self.crystal_structure[i-self.euler_start_line] = int(line.split()[7])					
 		# ctf file type: assuming odd columns size = even columns size
 		if self.file_type == 'ctf':
 			for i, line in enumerate(fid):
