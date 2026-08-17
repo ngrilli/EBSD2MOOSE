@@ -13,6 +13,7 @@ from abaqus_input_file import AbaqusInputFile
 from multiphase import Multiphase
 from stereographic_triangle import StereographicTriangle
 from odf import ODF
+from neper import Neper
 
 parser = argparse.ArgumentParser(prog='EBSD2MOOSE', \
                                  description='Convert EBSD ctf and ang files to MOOSE or UMAT Euler angles files', \
@@ -31,8 +32,14 @@ parser.add_argument('-aster','--aster',action='store_true')
 parser.add_argument('-multiphase','--multiphase',action='store_true')
 parser.add_argument('-stereographic_projection','--stereographic_projection',action='store_true')
 parser.add_argument('-odf','--odf',action='store_true')
+parser.add_argument('-neper','--neper',action='store_true')
 
 args = parser.parse_args()
+
+if (args.neper):
+	data = Neper(args.filename) # Neper needs mesh file instead of EBSD file
+	data.parse_mesh_file()
+	exit()
 
 data = EBSD(args.filename)
 
