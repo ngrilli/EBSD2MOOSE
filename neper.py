@@ -14,11 +14,14 @@ class Neper:
 
     def __init__(self, file_name):
         self.file_name = file_name # Neper generated mesh file
+        # example neper commands
+        # neper -T -n 39 -domain 'cube(50.0,50.0,0.5)'
+        # neper -M n39-id1.tess -elttype 'hex' -cl 0.5 -format 'inp' -order 1 -dim 3
         self.Nx = 0
         self.Ny = 0
-        self.phi1_map = np.zeros(shape=(0,0)) # 2D Euler angles maps
-        self.Phi_map = np.zeros(shape=(0,0))
-        self.phi2_map = np.zeros(shape=(0,0))
+        #self.phi1_map = np.zeros(shape=(0,0)) # 2D Euler angles maps
+        #self.Phi_map = np.zeros(shape=(0,0))
+        #self.phi2_map = np.zeros(shape=(0,0))
 
     def parse_mesh_file(self):
         self.mesh = meshio.read(self.file_name)
@@ -62,3 +65,33 @@ class Neper:
         ax_GB.contourf(np.transpose(np.squeeze(self.interface[:,:])),cmap='RdYlBu_r')
         ax_GB.tick_params(axis='both',which='both',bottom=False,top=False,right=False,left=False,labelbottom=False,labelleft=False)
         fig_GB.savefig('interface.png',dpi=200)
+
+    def generate_euler_angles_file(self):
+        self.phi1_map = np.zeros(shape=(self.Nx,self.Ny))
+        self.Phi_map = np.zeros(shape=(self.Nx,self.Ny))
+        self.phi2_map = np.zeros(shape=(self.Nx,self.Ny))
+        self.phi1 = np.zeros(shape=(self.number_of_grains))
+        self.Phi = np.zeros(shape=(self.number_of_grains))
+        self.phi2 = np.zeros(shape=(self.number_of_grains))
+        euler_angles_file = open("euler_angles.txt","w")
+        # generate random Euler angles for each grain: uniform distribution on a sphere
+        for grain_index in range(self.number_of_grains):
+            self.phi1[grain_index] = 360.0 * rd.random()
+            self.Phi[grain_index] = (180.0 / np.pi) * np.arccos(2.0 * rd.random() - 1.0)
+            self.phi2[grain_index] = 360.0 * rd.random()
+        for nx in range(0,self.Nx):
+            for ny in range(0,self.Ny):
+                self.phi1_map[nx,ny] = self.phi1[int(self.grain[nx,ny])]
+                self.Phi_map[nx,ny] = self.Phi[int(self.grain[nx,ny])]
+                self.phi2_map[nx,ny] = self.phi2[int(self.grain[nx,ny])]
+                euler_angles_file.write('{:0.2f}'.format(self.phi1_map[nx,ny]))
+                euler_angles_file.write(' ')
+                euler_angles_file.write('{:0.2f}'.format(self.Phi_map[nx,ny]))
+                euler_angles_file.write(' ')
+                euler_angles_file.write('{:0.2f}'.format(self.phi2_map[nx,ny]))
+                euler_angles_file.write('\n')
+        euler_angles_file.close()
+        fig_euler, ax_euler = plt.subplots()
+        ax_euler.contourf(np.transpose(self.phi1_map[:,:]),cmap='RdYlBu_r')
+        ax_euler.tick_params(axis='both',which='both',bottom=False,top=False,right=False,left=False,labelbottom=False,labelleft=False)
+        fig_euler.savefig('phi1.png',dpi=200)

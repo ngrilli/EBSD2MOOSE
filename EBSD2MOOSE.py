@@ -40,6 +40,7 @@ if (args.neper):
 	data = Neper(args.filename) # Neper needs mesh file instead of EBSD file
 	data.parse_mesh_file()
 	data.generate_interface_file()
+	data.generate_euler_angles_file()
 	exit()
 
 data = EBSD(args.filename)
